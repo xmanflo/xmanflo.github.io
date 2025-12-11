@@ -1,0 +1,67 @@
+:root {
+  --bg: #ffffff;
+  --text: #000000;
+  --panel: #eeeeee;
+}
+
+body.dark {
+  --bg: #121212;
+  --text: #e5e5e5;
+  --panel: #1e1e1e;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Arial, sans-serif;
+}
+
+header {
+  padding: 12px;
+  background: var(--panel);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+main {
+  display: flex;
+  height: calc(100vh - 60px);
+}
+
+#sidebar {
+  width: 220px;
+  background: var(--panel);
+  padding: 10px;
+  overflow-y: auto;
+}
+
+#content {
+  flex: 1;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+}
+
+#noteTitle {
+  font-size: 20px;
+  padding: 8px;
+  margin-bottom: 10px;
+}
+
+#noteBody {
+  flex: 1;
+  padding: 8px;
+  resize: none;
+}
+
+.upload {
+  margin-top: 10px;
+}
+
+#filePreview img {
+  max-width: 150px;
+  margin: 5px;
+  border-radius: 6px;
+}
