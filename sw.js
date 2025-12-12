@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kv-cache-v1';
+const CACHE_NAME = 'kv-cache-v2';
 const CORE = [
   '/',
   '/index.html',
@@ -24,15 +24,16 @@ self.addEventListener('activate', (e) => {
 });
 
 self.addEventListener('fetch', (e) => {
-  // Simple cache-first for core static assets, network-first for others
-  if (CORE.includes(new URL(e.request.url).pathname)) {
+  // cache-first for core assets
+  const url = new URL(e.request.url);
+  if (CORE.includes(url.pathname) || CORE.includes(url.pathname + '/')) {
     e.respondWith(
       caches.match(e.request).then(r => r || fetch(e.request).catch(()=> caches.match('/')))
     );
     return;
   }
 
-  // For other requests use network-first with cache fallback
+  // network-first for dynamic requests, fallback to cache
   e.respondWith(
     fetch(e.request).then(res => {
       const copy = res.clone();
