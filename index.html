@@ -1,44 +1,109 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Knowledge Vault</title>
+
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#0f172a" />
+
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <header>
-    <h1>Knowledge Vault</h1>
-    <button id="toggleTheme">Toggle Theme</button>
+  <header class="topbar">
+    <div class="brand">
+      <!-- Inline SVG logo -->
+      <svg class="logo" viewBox="0 0 64 64" aria-hidden="true">
+        <rect x="6" y="10" width="52" height="44" rx="4" fill="#0f172a"/>
+        <path d="M18 22h28v4H18zM18 30h28v4H18zM18 38h18v4H18z" fill="#00d4ff"/>
+        <circle cx="46" cy="18" r="5" fill="#ffd166"/>
+      </svg>
+      <div class="title">
+        <h1>Knowledge Vault</h1>
+        <small>Capture • Organize • Retrieve</small>
+      </div>
+    </div>
+
+    <div class="top-actions">
+      <input id="globalSearch" class="top-search" placeholder="Search notes, tags, content..." />
+      <button id="newNoteBtn" class="btn primary">+ New</button>
+      <button id="toggleTheme" class="btn">Theme</button>
+    </div>
   </header>
 
-  <main>
-    <section id="sidebar">
-      <button id="newNoteBtn">+ New Note</button>
+  <main class="app">
+    <aside class="sidebar">
+      <section class="panel">
+        <div class="panel-head">
+          <h3>Folders</h3>
+          <button id="addFolderBtn" class="icon-btn" title="Add folder">＋</button>
+        </div>
+        <ul id="folderList" class="list"></ul>
+      </section>
 
-      <h3>Folders</h3>
-      <div id="folderList"></div>
+      <section class="panel">
+        <div class="panel-head">
+          <h3>Tags</h3>
+          <button id="addTagBtn" class="icon-btn" title="Add tag">＋</button>
+        </div>
+        <div id="tagList" class="tag-cloud"></div>
+      </section>
 
-      <h3>Tags</h3>
-      <div id="tagList"></div>
+      <section class="panel notes-list">
+        <div class="panel-head">
+          <h3>Notes</h3>
+          <select id="sortSelect" title="Sort notes">
+            <option value="modified">Recent</option>
+            <option value="title">Title</option>
+          </select>
+        </div>
+        <ul id="notesList" class="list"></ul>
+      </section>
+    </aside>
 
-      <h3>Search</h3>
-      <input type="text" id="searchBox" placeholder="Search notes..." />
-    </section>
+    <section class="editor">
+      <div class="editor-toolbar">
+        <input id="noteTitle" placeholder="Untitled note" class="note-title" />
+        <div class="editor-actions">
+          <select id="folderAssign"></select>
+          <input id="tagsInput" placeholder="add tag (comma-separated)" />
+          <label class="file-btn">
+            Attach
+            <input id="fileInput" type="file" multiple />
+          </label>
+          <button id="exportBtn" class="btn">Export</button>
+          <button id="deleteBtn" class="btn danger">Delete</button>
+        </div>
+      </div>
 
-    <section id="content">
-      <input type="text" id="noteTitle" placeholder="Note title..." />
-      <textarea id="noteBody" placeholder="Write something..."></textarea>
+      <textarea id="noteBody" class="note-body" placeholder="Write your note..."></textarea>
 
-      <label class="upload">
-        Add files/images:
-        <input type="file" id="fileInput" multiple>
-      </label>
+      <div id="filePreview" class="file-preview"></div>
 
-      <div id="filePreview"></div>
+      <div class="statusbar">
+        <div id="noteMeta" class="meta">No note selected</div>
+        <div class="status-actions">
+          <button id="summaryBtn" class="btn">AI Summary (placeholder)</button>
+          <span id="saveIndicator">Saved</span>
+        </div>
+      </div>
     </section>
   </main>
 
-  <script src="script.js"></script>
+  <script src="script.js" defer></script>
+  <script>
+    // Register service worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', async () => {
+        try {
+          await navigator.serviceWorker.register('/sw.js');
+          console.log('Service worker registered');
+        } catch (e) {
+          console.warn('SW registration failed:', e);
+        }
+      });
+    }
+  </script>
 </body>
 </html>
