@@ -1,67 +1,64 @@
-:root {
-  --bg: #ffffff;
-  --text: #000000;
-  --panel: #eeeeee;
+/* Simple modern styling */
+:root{
+  --bg:#f7f8fb; --panel:#ffffff; --muted:#6b7280; --accent:#00d4ff; --accent2:#ffd166; --text:#0f172a;
+}
+body.dark{--bg:#071029; --panel:#0b1220; --muted:#9aa7b2; --accent:#00d4ff; --accent2:#ffd166; --text:#e6f0ff;}
+*{box-sizing:border-box}
+body{
+  margin:0; font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  background:var(--bg); color:var(--text); -webkit-font-smoothing:antialiased;
+  height:100vh; display:flex; flex-direction:column;
 }
 
-body.dark {
-  --bg: #121212;
-  --text: #e5e5e5;
-  --panel: #1e1e1e;
+/* Topbar */
+.topbar{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:12px 18px; background:var(--panel); gap:12px; border-bottom:1px solid rgba(0,0,0,0.04);
 }
+.brand{display:flex; align-items:center; gap:12px}
+.logo{width:44px; height:44px}
+.title h1{margin:0; font-size:16px}
+.title small{display:block; color:var(--muted); font-size:12px}
+.top-actions{display:flex; gap:8px; align-items:center}
+.top-search{padding:8px 12px; border-radius:8px; border:1px solid rgba(0,0,0,0.06); min-width:280px}
+.btn{background:transparent;border:1px solid rgba(0,0,0,0.08); padding:6px 10px;border-radius:8px; cursor:pointer}
+.btn.primary{background:var(--accent); color:#032; border:none}
+.btn.danger{background:transparent; color:#ff5c5c; border-color:rgba(255,0,0,0.08)}
 
-body {
-  margin: 0;
-  background: var(--bg);
-  color: var(--text);
-  font-family: Arial, sans-serif;
-}
+/* App layout */
+.app{display:flex; flex:1; height:calc(100vh - 72px)}
+.sidebar{width:300px; padding:12px; background:var(--panel); border-right:1px solid rgba(0,0,0,0.04); overflow:auto}
+.panel{margin-bottom:12px}
+.panel-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:8px}
+.list{list-style:none; padding:0; margin:0}
+.list li{padding:8px; border-radius:8px; cursor:pointer; display:flex; align-items:center; justify-content:space-between}
+.list li:hover{background:rgba(0,0,0,0.02)}
+.list li.active{background:linear-gradient(90deg, rgba(0,212,255,0.08), rgba(255,209,102,0.06)); border-left:3px solid var(--accent)}
+.notes-list{max-height:40vh; overflow:auto}
 
-header {
-  padding: 12px;
-  background: var(--panel);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
+/* Tag cloud */
+.tag-cloud{display:flex; gap:6px; flex-wrap:wrap}
+.tag{padding:6px 8px; border-radius:999px; background:rgba(0,0,0,0.04); font-size:12px; cursor:pointer}
+.tag:hover{opacity:0.85}
 
-main {
-  display: flex;
-  height: calc(100vh - 60px);
-}
+/* Editor */
+.editor{flex:1; padding:18px; display:flex; flex-direction:column; gap:10px}
+.editor-toolbar{display:flex; gap:12px; align-items:center}
+.note-title{flex:1; padding:10px; font-size:18px; border-radius:8px; border:1px solid rgba(0,0,0,0.06)}
+.editor-actions{display:flex; gap:8px; align-items:center}
+.file-btn{position:relative; overflow:hidden; display:inline-block}
+.file-btn input[type=file]{position:absolute; left:0; top:0; opacity:0; width:100%; height:100%; cursor:pointer}
+.note-body{flex:1; padding:12px; border-radius:8px; border:1px solid rgba(0,0,0,0.06); resize:vertical; min-height:240px}
+.file-preview{display:flex; gap:10px; flex-wrap:wrap}
+.file-preview img{max-width:120px; border-radius:8px; box-shadow:0 6px 18px rgba(0,0,0,0.06)}
+.meta{color:var(--muted); font-size:13px}
+.statusbar{display:flex; justify-content:space-between; align-items:center}
 
-#sidebar {
-  width: 220px;
-  background: var(--panel);
-  padding: 10px;
-  overflow-y: auto;
-}
+/* small icons */
+.icon-btn{background:transparent; border:none; font-size:16px; cursor:pointer}
 
-#content {
-  flex: 1;
-  padding: 15px;
-  display: flex;
-  flex-direction: column;
-}
-
-#noteTitle {
-  font-size: 20px;
-  padding: 8px;
-  margin-bottom: 10px;
-}
-
-#noteBody {
-  flex: 1;
-  padding: 8px;
-  resize: none;
-}
-
-.upload {
-  margin-top: 10px;
-}
-
-#filePreview img {
-  max-width: 150px;
-  margin: 5px;
-  border-radius: 6px;
+/* Responsive */
+@media (max-width:900px){
+  .sidebar{display:none}
+  .top-search{min-width:140px}
 }
