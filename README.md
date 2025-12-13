@@ -1,20 +1,24 @@
-# 📘 Knowledge Vault — Offline Notes App
+# Knowledge Vault — Upgraded
 
-Knowledge Vault is a browser-based notes app designed for fast information capture, organization, and retrieval.  
-It supports offline access, dark/light mode, uploading images/files, and auto-saving — all inside a lightweight interface.
+This repo contains the Knowledge Vault PWA: a local-first notes app with attachments, PDF viewer, trash, export/import, folders, tags, and optional realtime sync.
 
----
+## Quick deploy
+1. Put these files in the repository root: `index.html`, `style.css`, `script.js`, `manifest.json`, `sw.js`, `README.md`.
+2. Push to GitHub. For username `xmanflo` the site will be at: `https://xmanflo.github.io/`.
 
-## 🚀 Features
+## Enable Realtime (optional)
+- To enable Firebase realtime:
+  - Set `FIREBASE_ENABLED = true` in `script.js`.
+  - Paste your Firebase config into the `firebaseConfig` object.
+  - Ensure Firestore is enabled.
+- To use Supabase, replace the Firebase placeholder with Supabase client and subscribe.
 
-- ✏️ Quick note creation & editing  
-- 🗂 Folder + tag UI structure  
-- 🔍 Search bar included  
-- 💾 Offline storage using localStorage  
-- 🌙 Dark/light mode toggle  
-- 📁 File & image attachments  
-- ⚙️ Expandable architecture (AI, PDF tools, collaboration, PWA)
+## Notes & next steps
+- AI summaries are placeholders — I can wire OpenAI or other providers (requires server-side key).
+- I can provide PNG icons if you'd like proper install icons.
+- For richer PDF annotation (drag/highlight), I can integrate an annotation library.
 
----
-
-## 📂 File Structure
+If you want, I’ll:
+- Wire Firebase realtime and set a basic security rule set for testing.
+- Provide PNG icons (192px + 512px) and a favicon file.
+- Add an optional serverless endpoint to handle AI summaries securely.
