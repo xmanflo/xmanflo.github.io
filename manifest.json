@@ -1,10 +1,10 @@
 {
-  "name": "Knowledge Vault",
-  "short_name": "Vault",
+  "name": "The Idea Bank",
+  "short_name": "Idea Bank",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#072034",
-  "theme_color": "#072034",
+  "background_color": "#071a2d",
+  "theme_color": "#071a2d",
   "icons": [
     {
       "src": "icon-192.png",
