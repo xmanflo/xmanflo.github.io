@@ -1,152 +1,132 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="UTF-8" />
   <title>The Idea Bank</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <link rel="manifest" href="/manifest.json" />
-  <meta name="theme-color" content="#072034" />
+  <!-- PWA -->
+  <link rel="manifest" href="./manifest.json" />
+  <meta name="theme-color" content="#071a2d" />
+  <link rel="icon" href="./icon-192.png" />
 
-  <!-- inline SVG favicon (works without external files) -->
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%23072034'/%3E%3Cpath d='M20 32h60v6H20zM20 46h60v6H20zM20 60h36v6H20z' fill='%2300d4ff'/%3E%3Ccircle cx='74' cy='22' r='7' fill='%23ffd166'/%3E%3C/svg%3E">
+  <!-- Styles -->
+  <link rel="stylesheet" href="./style.css" />
 
   <!-- PDF.js -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.8.162/pdf.min.js"></script>
-
-  <link rel="stylesheet" href="/style.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script>
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+      "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+  </script>
 </head>
+
 <body>
+  <!-- TOP BAR -->
   <header class="topbar">
     <div class="brand">
-      <!-- inline modern logo -->
-      <svg class="logo" viewBox="0 0 64 64" aria-hidden="true" role="img">
-        <rect x="4" y="8" width="56" height="48" rx="8" fill="#072034"/>
-        <path d="M16 24h32v4H16zM16 32h32v4H16zM16 40h20v4H16z" fill="#00d4ff"/>
-        <circle cx="46" cy="18" r="5" fill="#ffd166"/>
-      </svg>
+      <img src="./icon-192.png" class="logo" />
       <div class="title">
         <h1>The Idea Bank</h1>
-        <small>Capture · Organize · Grow Ideas</small>
+        <small>Capture • Organize • Think</small>
       </div>
     </div>
 
     <div class="top-actions">
-      <input id="globalSearch" class="top-search" placeholder="Search notes, tags, folders, content..." />
-      <button id="newNoteBtn" class="btn primary">New</button>
-      <button id="toggleTheme" class="btn">Theme</button>
-      <button id="openTrashBtn" class="btn">Trash</button>
+      <input id="globalSearch" class="top-search" placeholder="Search notes..." />
+      <button id="toggleTheme" class="btn">🌗</button>
+      <button id="newNoteBtn" class="btn primary">+ New</button>
     </div>
   </header>
 
+  <!-- MAIN -->
   <main class="app">
+    <!-- SIDEBAR -->
     <aside class="sidebar">
-      <section class="panel">
+      <div class="panel">
         <div class="panel-head">
-          <h3>Folders</h3>
-          <div>
-            <button id="addFolderBtn" class="icon-btn">＋</button>
-            <button id="renameFolderBtn" class="icon-btn" title="Rename folder">✎</button>
-          </div>
-        </div>
-        <ul id="folderList" class="list"></ul>
-      </section>
-
-      <section class="panel">
-        <div class="panel-head">
-          <h3>Tags</h3>
-          <div>
-            <button id="addTagBtn" class="icon-btn">＋</button>
-            <button id="clearTagsBtn" class="icon-btn" title="Clear tags">✖</button>
-          </div>
-        </div>
-        <div id="tagList" class="tag-cloud"></div>
-      </section>
-
-      <section class="panel notes-list">
-        <div class="panel-head">
-          <h3>Notes</h3>
-          <div>
-            <select id="sortSelect" title="Sort notes">
-              <option value="modified">Recent</option>
-              <option value="title">Title</option>
-            </select>
-            <button id="exportVaultBtn" class="btn">Export</button>
-            <input id="importVaultFile" type="file" accept="application/json" style="display:none"/>
-            <button id="importVaultBtn" class="btn">Import</button>
-          </div>
+          <strong>Notes</strong>
+          <select id="sortSelect">
+            <option value="modified">Modified</option>
+            <option value="title">Title</option>
+          </select>
         </div>
         <ul id="notesList" class="list"></ul>
-      </section>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <strong>Folders</strong>
+          <button id="addFolderBtn" class="icon-btn">＋</button>
+        </div>
+        <ul id="folderList" class="list"></ul>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <strong>Tags</strong>
+          <button id="addTagBtn" class="icon-btn">＋</button>
+        </div>
+        <div id="tagList" class="tag-cloud"></div>
+      </div>
+
+      <div class="panel">
+        <button id="openTrashBtn" class="btn">🗑 Trash</button>
+        <button id="exportVaultBtn" class="btn">⬇ Export Vault</button>
+        <button id="importVaultBtn" class="btn">⬆ Import Vault</button>
+        <input type="file" id="importVaultFile" hidden />
+      </div>
     </aside>
 
+    <!-- EDITOR -->
     <section class="editor">
       <div class="editor-toolbar">
-        <input id="noteTitle" placeholder="Untitled note" class="note-title" />
-        <div class="editor-actions">
-          <select id="folderAssign"></select>
-          <input id="tagsInput" placeholder="add tags (comma-separated)" />
-          <label class="file-btn">
-            Attach
-            <input id="fileInput" type="file" multiple />
-          </label>
-          <button id="exportBtn" class="btn">Export note</button>
-          <button id="deleteBtn" class="btn danger">Delete</button>
-        </div>
+        <input id="noteTitle" class="note-title" placeholder="Note title..." />
+        <select id="folderAssign"></select>
+        <input id="tagsInput" placeholder="tags,comma,separated" />
       </div>
 
-      <div class="editor-body">
-        <div class="toolbar">
-          <!-- Basic editor toolbar (bold/italic/list/insert-image) -->
-          <button class="tool" data-cmd="bold">B</button>
-          <button class="tool" data-cmd="italic">I</button>
-          <button class="tool" data-cmd="ul">• List</button>
-          <button class="tool" data-cmd="insertImage">Image</button>
-        </div>
-
-        <div id="editor" contenteditable="true" class="rich-editor" spellcheck="true" placeholder="Write your note..."></div>
+      <div class="toolbar">
+        <button class="tool" data-cmd="bold">B</button>
+        <button class="tool" data-cmd="italic">I</button>
+        <button class="tool" data-cmd="ul">• List</button>
+        <button class="tool" data-cmd="insertImage">🖼</button>
       </div>
 
-      <div id="filePreview" class="file-preview"></div>
+      <div id="editor" class="rich-editor" contenteditable="true"></div>
+
+      <div class="file-preview" id="filePreview"></div>
 
       <div class="statusbar">
-        <div id="noteMeta" class="meta">No note selected</div>
-        <div class="status-actions">
-          <button id="openPdfBtn" class="btn">Open PDF</button>
-          <button id="summaryBtn" class="btn">AI Summary</button>
-          <span id="syncIndicator" class="meta">Local</span>
-          <span id="saveIndicator" class="meta">Saved</span>
+        <div id="noteMeta" class="meta"></div>
+        <div>
+          <span id="saveIndicator"></span>
+          <button id="deleteBtn" class="btn danger">Delete</button>
+          <button id="exportBtn" class="btn">Export</button>
         </div>
       </div>
+
+      <input type="file" id="fileInput" multiple hidden />
     </section>
   </main>
 
-  <!-- PDF modal -->
+  <!-- PDF MODAL -->
   <div id="pdfModal" class="modal" aria-hidden="true">
     <div class="modal-content">
-      <header>
-        <h4>PDF Viewer</h4>
-        <button id="closePdfBtn" class="icon-btn">✖</button>
-      </header>
       <div id="pdfContainer" class="pdf-container"></div>
       <div class="pdf-toolbar">
-        <button id="pdfAnnotateBtn" class="btn">Add Annotation</button>
+        <button id="pdfAnnotateBtn" class="btn">Annotate</button>
         <button id="pdfDownloadBtn" class="btn">Download</button>
+        <button id="closePdfBtn" class="btn danger">Close</button>
       </div>
     </div>
   </div>
 
-  <script src="/script.js" defer></script>
+  <!-- Scripts -->
+  <script src="./script.js"></script>
   <script>
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', async () => {
-        try {
-          await navigator.serviceWorker.register('/sw.js');
-          console.log('Service worker registered');
-        } catch (e) {
-          console.warn('SW registration failed:', e);
-        }
-      });
+      navigator.serviceWorker.register('./sw.js');
     }
   </script>
 </body>
