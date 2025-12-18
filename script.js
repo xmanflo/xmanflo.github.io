@@ -1,241 +1,147 @@
-/* ==================================
-   THE IDEA BANK — CORE LOGIC v2
-   Improved Trash System
-   ================================== */
+/* =========================================
+   THE IDEA BANK — iPhone Notes Style
+   ========================================= */
 
-const $ = id => document.getElementById(id);
+const STORAGE_KEY = 'idea_bank_notes';
+const TRASH_KEY = 'idea_bank_trash';
 
-/* ---------- STATE ---------- */
-let state = {
-  notes: JSON.parse(localStorage.getItem('ideaBankNotes')) || [],
-  folders: JSON.parse(localStorage.getItem('ideaBankFolders')) || ['All'],
-  activeFolder: 'All',
-  activeNoteId: null,
-  theme: localStorage.getItem('ideaBankTheme') || 'light',
-  showTrash: false
-};
+let notes = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+let trash = JSON.parse(localStorage.getItem(TRASH_KEY)) || [];
+let activeId = null;
+
+/* DOM */
+const notesList = document.getElementById('notesList');
+const titleInput = document.getElementById('title');
+const editor = document.getElementById('editor');
+const status = document.getElementById('status');
+
+document.getElementById('newNote').onclick = createNote;
+document.getElementById('deleteNote').onclick = deleteNote;
+document.getElementById('openTrash').onclick = openTrash;
+document.getElementById('search').oninput = renderNotes;
+
+titleInput.oninput = debounce(saveNote, 300);
+editor.oninput = debounce(saveNote, 300);
 
 /* ---------- INIT ---------- */
-document.addEventListener('DOMContentLoaded', () => {
-  applyTheme();
-  renderFolders();
-  renderNotes();
-  bindUI();
-});
+if (!notes.length) createNote();
+else selectNote(notes[0].id);
 
-/* ---------- UI ---------- */
-function bindUI() {
-  $('newNoteBtn').onclick = createNote;
-  $('deleteBtn').onclick = trashNote;
-  $('toggleTheme').onclick = toggleTheme;
-  $('globalSearch').oninput = searchNotes;
-  $('editor').oninput = saveCurrentNote;
-  $('noteTitle').oninput = saveCurrentNote;
-  $('addFolderBtn').onclick = addFolder;
-  $('openTrashBtn').onclick = toggleTrashView;
-  $('tagsInput').onchange = updateTags;
-}
-
-/* ---------- NOTES ---------- */
-function createNote() {
+/* ---------- CORE ---------- */
+function createNote(){
   const note = {
-    id: Date.now(),
-    title: 'Untitled note',
-    content: '',
-    folder: state.activeFolder,
-    tags: [],
-    trashed: false,
-    updated: new Date().toISOString()
+    id: Date.now().toString(),
+    title: '',
+    body: '',
+    updated: Date.now()
   };
-
-  state.notes.unshift(note);
-  state.activeNoteId = note.id;
-  persist();
+  notes.unshift(note);
+  activeId = note.id;
+  saveAll();
   renderNotes();
-  loadNote(note.id);
+  loadNote(note);
 }
 
-function loadNote(id) {
-  const note = state.notes.find(n => n.id === id);
+function saveNote(){
+  const note = notes.find(n => n.id === activeId);
   if (!note) return;
 
-  state.activeNoteId = id;
-  $('noteTitle').value = note.title;
-  $('editor').innerHTML = note.content;
-  $('tagsInput').value = note.tags.join(', ');
-  $('noteMeta').textContent =
-    note.trashed
-      ? '🗑️ In Trash'
-      : `Folder: ${note.folder} · Last edited: ${new Date(note.updated).toLocaleString()}`;
+  note.title = titleInput.value;
+  note.body = editor.innerHTML;
+  note.updated = Date.now();
+
+  saveAll();
+  status.textContent = 'Saved';
 }
 
-function saveCurrentNote() {
-  const note = state.notes.find(n => n.id === state.activeNoteId);
-  if (!note || note.trashed) return;
+function deleteNote(){
+  const note = notes.find(n => n.id === activeId);
+  if (!note) return;
 
-  note.title = $('noteTitle').value || 'Untitled note';
-  note.content = $('editor').innerHTML;
-  note.updated = new Date().toISOString();
+  if (!confirm('Move note to Trash?')) return;
 
-  persist();
+  trash.unshift(note);
+  notes = notes.filter(n => n.id !== activeId);
+  activeId = notes[0]?.id || null;
+
+  saveAll();
   renderNotes();
+
+  if (activeId) loadNote(notes[0]);
+  else clearEditor();
+}
+
+/* ---------- UI ---------- */
+function renderNotes(){
+  const q = document.getElementById('search').value.toLowerCase();
+  notesList.innerHTML = '';
+
+  notes
+    .filter(n => (n.title + n.body).toLowerCase().includes(q))
+    .sort((a,b) => b.updated - a.updated)
+    .forEach(note => {
+      const li = document.createElement('li');
+      li.className = 'list-item';
+      li.innerHTML = `<strong>${note.title || 'Untitled'}</strong>`;
+      li.onclick = () => selectNote(note.id);
+      if (note.id === activeId) li.classList.add('active');
+      notesList.appendChild(li);
+    });
+}
+
+function selectNote(id){
+  activeId = id;
+  const note = notes.find(n => n.id === id);
+  if (!note) return;
+  loadNote(note);
+  renderNotes();
+}
+
+function loadNote(note){
+  titleInput.value = note.title || '';
+  editor.innerHTML = note.body || '';
+}
+
+function clearEditor(){
+  titleInput.value = '';
+  editor.innerHTML = '';
 }
 
 /* ---------- TRASH ---------- */
-function trashNote() {
-  const note = state.notes.find(n => n.id === state.activeNoteId);
-  if (!note) return;
+function openTrash(){
+  if (!trash.length) return alert('Trash is empty');
 
-  if (!confirm('Move this note to Trash?')) return;
-
-  note.trashed = true;
-  state.activeNoteId = null;
-
-  clearEditor();
-  persist();
-  renderNotes();
-}
-
-function restoreNote(id) {
-  const note = state.notes.find(n => n.id === id);
-  if (!note) return;
-
-  note.trashed = false;
-  persist();
-  renderNotes();
-}
-
-function deleteForever(id) {
-  if (!confirm('Delete permanently? This cannot be undone.')) return;
-
-  state.notes = state.notes.filter(n => n.id !== id);
-  persist();
-  renderNotes();
-}
-
-function toggleTrashView() {
-  state.showTrash = !state.showTrash;
-  $('openTrashBtn').textContent = state.showTrash ? 'Back' : 'Trash';
-  clearEditor();
-  renderNotes();
-}
-
-/* ---------- FOLDERS ---------- */
-function addFolder() {
-  const name = prompt('Folder name');
-  if (!name || state.folders.includes(name)) return;
-
-  state.folders.push(name);
-  persist();
-  renderFolders();
-}
-
-function selectFolder(name) {
-  state.activeFolder = name;
-  state.showTrash = false;
-  renderFolders();
-  renderNotes();
-}
-
-function renderFolders() {
-  const list = $('folderList');
-  list.innerHTML = '';
-
-  state.folders.forEach(folder => {
-    const li = document.createElement('li');
-    li.textContent = folder;
-    li.onclick = () => selectFolder(folder);
-    if (folder === state.activeFolder) li.classList.add('active');
-    list.appendChild(li);
-  });
-}
-
-/* ---------- TAGS ---------- */
-function updateTags(e) {
-  const note = state.notes.find(n => n.id === state.activeNoteId);
-  if (!note || note.trashed) return;
-
-  note.tags = e.target.value
-    .split(',')
-    .map(t => t.trim())
-    .filter(Boolean);
-
-  persist();
-}
-
-/* ---------- SEARCH ---------- */
-function searchNotes(e) {
-  const q = e.target.value.toLowerCase();
-
-  const filtered = state.notes.filter(n =>
-    !n.trashed &&
-    (n.title.toLowerCase().includes(q) ||
-     n.content.toLowerCase().includes(q) ||
-     n.tags.join(' ').toLowerCase().includes(q))
+  const choice = prompt(
+    trash.map((n,i)=>`${i+1}) ${n.title || 'Untitled'}`).join('\n') +
+    '\n\nEnter number to restore or "d#" to delete forever'
   );
 
-  renderNotes(filtered);
-}
+  if (!choice) return;
 
-/* ---------- RENDER NOTES ---------- */
-function renderNotes(custom = null) {
-  const list = $('notesList');
-  list.innerHTML = '';
-
-  let notes = custom || state.notes;
-
-  notes = notes.filter(n =>
-    state.showTrash ? n.trashed : !n.trashed
-  );
-
-  if (!state.showTrash && state.activeFolder !== 'All') {
-    notes = notes.filter(n => n.folder === state.activeFolder);
+  if (choice.startsWith('d')){
+    const i = parseInt(choice.slice(1)) - 1;
+    trash.splice(i,1);
+  } else {
+    const i = parseInt(choice) - 1;
+    notes.unshift(trash[i]);
+    trash.splice(i,1);
   }
 
-  if (!notes.length) {
-    list.innerHTML = '<li style="opacity:.6">No notes</li>';
-    return;
-  }
-
-  notes.forEach(note => {
-    const li = document.createElement('li');
-    li.className = note.trashed ? 'trashed' : '';
-    li.innerHTML = `
-      <div>${note.title}</div>
-      ${state.showTrash ? `
-        <div style="display:flex; gap:6px">
-          <button class="btn" onclick="restoreNote(${note.id})">Restore</button>
-          <button class="btn danger" onclick="deleteForever(${note.id})">Delete</button>
-        </div>
-      ` : ''}
-    `;
-    if (!state.showTrash) li.onclick = () => loadNote(note.id);
-    list.appendChild(li);
-  });
-}
-
-/* ---------- UTIL ---------- */
-function clearEditor() {
-  $('noteTitle').value = '';
-  $('editor').innerHTML = '';
-  $('tagsInput').value = '';
-  $('noteMeta').textContent = '';
-}
-
-/* ---------- THEME ---------- */
-function toggleTheme() {
-  state.theme = state.theme === 'dark' ? 'light' : 'dark';
-  persist();
-  applyTheme();
-}
-
-function applyTheme() {
-  document.body.classList.toggle('dark', state.theme === 'dark');
+  saveAll();
+  renderNotes();
 }
 
 /* ---------- STORAGE ---------- */
-function persist() {
-  localStorage.setItem('ideaBankNotes', JSON.stringify(state.notes));
-  localStorage.setItem('ideaBankFolders', JSON.stringify(state.folders));
-  localStorage.setItem('ideaBankTheme', state.theme);
+function saveAll(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
+  localStorage.setItem(TRASH_KEY, JSON.stringify(trash));
+}
+
+/* ---------- UTILS ---------- */
+function debounce(fn, delay){
+  let t;
+  return (...args)=>{
+    clearTimeout(t);
+    t = setTimeout(()=>fn(...args), delay);
+  };
 }
