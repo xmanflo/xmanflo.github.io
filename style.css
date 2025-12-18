@@ -1,331 +1,97 @@
-/* =========================================
-   THE IDEA BANK — Modern Glass UI
-   Dark / Light Mode + Trash Improvements
-   ========================================= */
-
-/* ---------- THEME VARIABLES ---------- */
-:root{
-  --bg:#f4f7fb;
-  --panel:#ffffff;
-  --muted:#6b7785;
-  --accent:#00d4ff;
-  --accent2:#ffd166;
-  --text:#072034;
-  --glass: rgba(255,255,255,0.6);
+* {
+  box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
-body.dark{
-  --bg:#041225;
-  --panel:#071022;
-  --muted:#98a7b2;
-  --text:#dfeff8;
-  --glass: rgba(255,255,255,0.03);
+body {
+  margin: 0;
+  background: #f2f2f7;
+  color: #111;
 }
 
-/* ---------- GLOBAL ---------- */
-*{ box-sizing:border-box }
-
-body{
-  margin:0;
-  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial;
-  background:var(--bg);
-  color:var(--text);
-  min-height:100vh;
-  display:flex;
-  flex-direction:column;
-  -webkit-font-smoothing:antialiased;
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  padding: 14px;
+  background: white;
+  box-shadow: 0 2px 10px rgba(0,0,0,.08);
 }
 
-/* ---------- TOP BAR ---------- */
-.topbar{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  padding:14px 20px;
-  gap:16px;
-  background:linear-gradient(180deg,var(--panel), rgba(0,0,0,0.02));
-  box-shadow:0 8px 30px rgba(5,10,20,0.04);
-  position:sticky;
-  top:0;
-  z-index:20;
+button {
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: none;
+  background: #007aff;
+  color: white;
+  cursor: pointer;
 }
 
-.brand{
-  display:flex;
-  align-items:center;
-  gap:14px;
+button:active {
+  transform: scale(.96);
 }
 
-.logo{
-  width:48px;
-  height:48px;
+.app {
+  display: flex;
+  height: calc(100vh - 60px);
 }
 
-.title h1{
-  margin:0;
-  font-size:18px;
+.notes-list {
+  width: 300px;
+  background: white;
+  overflow-y: auto;
+  border-right: 1px solid #ddd;
 }
 
-.title small{
-  display:block;
-  color:var(--muted);
-  font-size:12px;
+.note-item {
+  padding: 14px;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
 }
 
-.top-actions{
-  display:flex;
-  gap:10px;
-  align-items:center;
+.note-item.active {
+  background: #e5f0ff;
 }
 
-.top-search{
-  padding:10px 14px;
-  border-radius:12px;
-  border:1px solid rgba(0,0,0,0.06);
-  min-width:320px;
-  background:transparent;
+.editor {
+  flex: 1;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
 }
 
-/* ---------- BUTTONS ---------- */
-.btn{
-  background:transparent;
-  border:1px solid rgba(0,0,0,0.06);
-  padding:8px 12px;
-  border-radius:10px;
-  cursor:pointer;
+#noteTitle {
+  font-size: 20px;
+  padding: 8px;
+  border: none;
+  border-bottom: 1px solid #ccc;
+  outline: none;
 }
 
-.btn.primary{
-  background:linear-gradient(90deg,var(--accent),var(--accent2));
-  color:#072b36;
-  border:none;
+#editor {
+  flex: 1;
+  margin-top: 12px;
+  padding: 12px;
+  background: white;
+  border-radius: 12px;
+  overflow-y: auto;
 }
 
-.btn.danger{
-  color:#ff5c5c;
-  border-color:rgba(255,0,0,0.2);
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-/* ---------- LAYOUT ---------- */
-.app{
-  display:flex;
-  flex:1;
-  gap:18px;
-  padding:20px;
+.modal-content {
+  background: white;
+  padding: 16px;
+  border-radius: 12px;
+  width: 300px;
 }
 
-.sidebar{
-  width:320px;
-  padding:14px;
-  background:var(--panel);
-  border-radius:12px;
-  box-shadow:0 12px 40px rgba(2,6,23,0.05);
-  overflow:auto;
-}
-
-.editor{
-  flex:1;
-  display:flex;
-  flex-direction:column;
-  gap:12px;
-  padding:18px;
-  background:var(--panel);
-  border-radius:12px;
-  box-shadow:0 12px 40px rgba(2,6,23,0.05);
-}
-
-/* ---------- PANELS & LISTS ---------- */
-.panel{ margin-bottom:14px }
-
-.panel-head{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  margin-bottom:8px;
-}
-
-.list{
-  list-style:none;
-  padding:0;
-  margin:0;
-}
-
-.list li{
-  padding:10px;
-  border-radius:10px;
-  cursor:pointer;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:10px;
-}
-
-.list li:hover{
-  background:linear-gradient(
-    90deg,
-    rgba(0,212,255,0.03),
-    rgba(255,209,102,0.02)
-  );
-}
-
-.list li.active{
-  background:linear-gradient(
-    90deg,
-    rgba(0,212,255,0.08),
-    rgba(255,209,102,0.06)
-  );
-  border-left:4px solid var(--accent);
-}
-
-/* ---------- TRASH STYLES (NEW) ---------- */
-.list li.trashed{
-  opacity:0.55;
-  text-decoration:line-through;
-  background:rgba(255,0,0,0.03);
-}
-
-.list li.trashed:hover{
-  background:rgba(255,0,0,0.06);
-}
-
-/* ---------- TAGS ---------- */
-.tag-cloud{
-  display:flex;
-  gap:8px;
-  flex-wrap:wrap;
-}
-
-.tag{
-  padding:6px 10px;
-  border-radius:999px;
-  background:rgba(0,0,0,0.04);
-  font-size:13px;
-  cursor:pointer;
-}
-
-/* ---------- EDITOR ---------- */
-.editor-toolbar{
-  display:flex;
-  gap:12px;
-  align-items:center;
-}
-
-.note-title{
-  flex:1;
-  padding:12px;
-  font-size:18px;
-  border-radius:10px;
-  border:1px solid rgba(0,0,0,0.06);
-}
-
-.editor-actions{
-  display:flex;
-  gap:8px;
-  align-items:center;
-}
-
-.editor-body{
-  display:flex;
-  flex-direction:column;
-  gap:8px;
-}
-
-.toolbar{
-  display:flex;
-  gap:8px;
-}
-
-.tool{
-  padding:8px 10px;
-  border-radius:8px;
-  border:1px solid rgba(0,0,0,0.06);
-  cursor:pointer;
-}
-
-.rich-editor{
-  min-height:320px;
-  padding:16px;
-  border-radius:12px;
-  border:1px solid rgba(0,0,0,0.06);
-  background:var(--glass);
-  overflow:auto;
-}
-
-/* ---------- FILE PREVIEW ---------- */
-.file-preview{
-  display:flex;
-  gap:12px;
-  flex-wrap:wrap;
-}
-
-.file-preview img{
-  max-width:160px;
-  border-radius:10px;
-  box-shadow:0 12px 30px rgba(2,6,23,0.06);
-}
-
-/* ---------- STATUS ---------- */
-.meta{
-  color:var(--muted);
-  font-size:13px;
-}
-
-.statusbar{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:12px;
-}
-
-/* ---------- PDF MODAL ---------- */
-.modal{
-  position:fixed;
-  inset:0;
-  display:none;
-  align-items:center;
-  justify-content:center;
-  background:rgba(2,6,23,0.55);
-  z-index:60;
-}
-
-.modal[aria-hidden="false"]{
-  display:flex;
-}
-
-.modal-content{
-  width:92%;
-  max-width:1200px;
-  background:var(--panel);
-  border-radius:12px;
-  padding:14px;
-  box-shadow:0 30px 60px rgba(2,6,23,0.6);
-}
-
-.pdf-container{
-  height:70vh;
-  overflow:auto;
-  background:#0b0b0b;
-  border-radius:8px;
-  padding:12px;
-}
-
-.pdf-toolbar{
-  display:flex;
-  gap:8px;
-  justify-content:flex-end;
-  margin-top:8px;
-}
-
-/* ---------- ICON BUTTON ---------- */
-.icon-btn{
-  background:transparent;
-  border:none;
-  font-size:16px;
-  cursor:pointer;
-}
-
-/* ---------- RESPONSIVE ---------- */
-@media (max-width:1000px){
-  .sidebar{ display:none }
-  .top-search{ min-width:140px }
+.hidden {
+  display: none;
 }
