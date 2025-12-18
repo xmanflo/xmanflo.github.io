@@ -1,6 +1,6 @@
-/* ============================
-   THE IDEA BANK – CORE LOGIC
-   ============================ */
+/* ==================================
+   THE IDEA BANK – FULL CORE LOGIC
+   ================================== */
 
 const $ = id => document.getElementById(id);
 
@@ -8,8 +8,10 @@ const $ = id => document.getElementById(id);
 let state = {
   notes: JSON.parse(localStorage.getItem('ideaBankNotes')) || [],
   folders: JSON.parse(localStorage.getItem('ideaBankFolders')) || ['All'],
+  activeFolder: 'All',
   activeNoteId: null,
-  theme: localStorage.getItem('ideaBankTheme') || 'light'
+  theme: localStorage.getItem('ideaBankTheme') || 'light',
+  showTrash: false
 };
 
 /* ---------- INIT ---------- */
@@ -23,11 +25,14 @@ document.addEventListener('DOMContentLoaded', () => {
 /* ---------- UI BINDINGS ---------- */
 function bindUI() {
   $('newNoteBtn').onclick = createNote;
-  $('deleteBtn').onclick = deleteNote;
+  $('deleteBtn').onclick = trashNote;
   $('toggleTheme').onclick = toggleTheme;
   $('globalSearch').oninput = searchNotes;
   $('editor').oninput = saveCurrentNote;
   $('noteTitle').oninput = saveCurrentNote;
+  $('addFolderBtn').onclick = addFolder;
+  $('openTrashBtn').onclick = toggleTrashView;
+  $('tagsInput').onchange = updateTags;
 }
 
 /* ---------- NOTES ---------- */
@@ -36,7 +41,9 @@ function createNote() {
     id: Date.now(),
     title: 'Untitled note',
     content: '',
-    folder: 'All',
+    folder: state.activeFolder,
+    tags: [],
+    trashed: false,
     updated: new Date().toISOString()
   };
 
@@ -54,7 +61,9 @@ function loadNote(id) {
   state.activeNoteId = id;
   $('noteTitle').value = note.title;
   $('editor').innerHTML = note.content;
-  $('noteMeta').textContent = `Last edited: ${new Date(note.updated).toLocaleString()}`;
+  $('tagsInput').value = note.tags.join(', ');
+  $('noteMeta').textContent =
+    `Folder: ${note.folder} · Last edited: ${new Date(note.updated).toLocaleString()}`;
 }
 
 function saveCurrentNote() {
@@ -69,33 +78,43 @@ function saveCurrentNote() {
   renderNotes();
 }
 
-function deleteNote() {
-  if (!state.activeNoteId) return;
+/* ---------- TRASH ---------- */
+function trashNote() {
+  const note = state.notes.find(n => n.id === state.activeNoteId);
+  if (!note) return;
 
-  state.notes = state.notes.filter(n => n.id !== state.activeNoteId);
+  note.trashed = true;
   state.activeNoteId = null;
 
   $('noteTitle').value = '';
   $('editor').innerHTML = '';
-  $('noteMeta').textContent = 'Note deleted';
+  $('tagsInput').value = '';
+  $('noteMeta').textContent = 'Moved to Trash';
 
   persist();
   renderNotes();
 }
 
-/* ---------- RENDER ---------- */
-function renderNotes(filtered = null) {
-  const list = $('notesList');
-  list.innerHTML = '';
+function toggleTrashView() {
+  state.showTrash = !state.showTrash;
+  $('openTrashBtn').textContent = state.showTrash ? 'Back' : 'Trash';
+  renderNotes();
+}
 
-  const notes = filtered || state.notes;
+/* ---------- FOLDERS ---------- */
+function addFolder() {
+  const name = prompt('Folder name');
+  if (!name || state.folders.includes(name)) return;
 
-  notes.forEach(note => {
-    const li = document.createElement('li');
-    li.textContent = note.title;
-    li.onclick = () => loadNote(note.id);
-    list.appendChild(li);
-  });
+  state.folders.push(name);
+  persist();
+  renderFolders();
+}
+
+function selectFolder(name) {
+  state.activeFolder = name;
+  state.showTrash = false;
+  renderNotes();
 }
 
 function renderFolders() {
@@ -105,8 +124,23 @@ function renderFolders() {
   state.folders.forEach(folder => {
     const li = document.createElement('li');
     li.textContent = folder;
+    li.onclick = () => selectFolder(folder);
+    if (folder === state.activeFolder) li.classList.add('active');
     list.appendChild(li);
   });
+}
+
+/* ---------- TAGS ---------- */
+function updateTags(e) {
+  const note = state.notes.find(n => n.id === state.activeNoteId);
+  if (!note) return;
+
+  note.tags = e.target.value
+    .split(',')
+    .map(t => t.trim())
+    .filter(Boolean);
+
+  persist();
 }
 
 /* ---------- SEARCH ---------- */
@@ -114,11 +148,36 @@ function searchNotes(e) {
   const q = e.target.value.toLowerCase();
 
   const filtered = state.notes.filter(n =>
-    n.title.toLowerCase().includes(q) ||
-    n.content.toLowerCase().includes(q)
+    !n.trashed &&
+    (n.title.toLowerCase().includes(q) ||
+     n.content.toLowerCase().includes(q) ||
+     n.tags.join(' ').toLowerCase().includes(q))
   );
 
   renderNotes(filtered);
+}
+
+/* ---------- RENDER NOTES ---------- */
+function renderNotes(custom = null) {
+  const list = $('notesList');
+  list.innerHTML = '';
+
+  let notes = custom || state.notes;
+
+  notes = notes.filter(n =>
+    state.showTrash ? n.trashed : !n.trashed
+  );
+
+  if (state.activeFolder !== 'All' && !state.showTrash) {
+    notes = notes.filter(n => n.folder === state.activeFolder);
+  }
+
+  notes.forEach(note => {
+    const li = document.createElement('li');
+    li.textContent = note.title;
+    li.onclick = () => loadNote(note.id);
+    list.appendChild(li);
+  });
 }
 
 /* ---------- THEME ---------- */
