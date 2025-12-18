@@ -1,5 +1,6 @@
 /* ==================================
-   THE IDEA BANK – FULL CORE LOGIC
+   THE IDEA BANK — CORE LOGIC v2
+   Improved Trash System
    ================================== */
 
 const $ = id => document.getElementById(id);
@@ -22,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
   bindUI();
 });
 
-/* ---------- UI BINDINGS ---------- */
+/* ---------- UI ---------- */
 function bindUI() {
   $('newNoteBtn').onclick = createNote;
   $('deleteBtn').onclick = trashNote;
@@ -63,12 +64,14 @@ function loadNote(id) {
   $('editor').innerHTML = note.content;
   $('tagsInput').value = note.tags.join(', ');
   $('noteMeta').textContent =
-    `Folder: ${note.folder} · Last edited: ${new Date(note.updated).toLocaleString()}`;
+    note.trashed
+      ? '🗑️ In Trash'
+      : `Folder: ${note.folder} · Last edited: ${new Date(note.updated).toLocaleString()}`;
 }
 
 function saveCurrentNote() {
   const note = state.notes.find(n => n.id === state.activeNoteId);
-  if (!note) return;
+  if (!note || note.trashed) return;
 
   note.title = $('noteTitle').value || 'Untitled note';
   note.content = $('editor').innerHTML;
@@ -83,14 +86,29 @@ function trashNote() {
   const note = state.notes.find(n => n.id === state.activeNoteId);
   if (!note) return;
 
+  if (!confirm('Move this note to Trash?')) return;
+
   note.trashed = true;
   state.activeNoteId = null;
 
-  $('noteTitle').value = '';
-  $('editor').innerHTML = '';
-  $('tagsInput').value = '';
-  $('noteMeta').textContent = 'Moved to Trash';
+  clearEditor();
+  persist();
+  renderNotes();
+}
 
+function restoreNote(id) {
+  const note = state.notes.find(n => n.id === id);
+  if (!note) return;
+
+  note.trashed = false;
+  persist();
+  renderNotes();
+}
+
+function deleteForever(id) {
+  if (!confirm('Delete permanently? This cannot be undone.')) return;
+
+  state.notes = state.notes.filter(n => n.id !== id);
   persist();
   renderNotes();
 }
@@ -98,6 +116,7 @@ function trashNote() {
 function toggleTrashView() {
   state.showTrash = !state.showTrash;
   $('openTrashBtn').textContent = state.showTrash ? 'Back' : 'Trash';
+  clearEditor();
   renderNotes();
 }
 
@@ -114,6 +133,7 @@ function addFolder() {
 function selectFolder(name) {
   state.activeFolder = name;
   state.showTrash = false;
+  renderFolders();
   renderNotes();
 }
 
@@ -133,7 +153,7 @@ function renderFolders() {
 /* ---------- TAGS ---------- */
 function updateTags(e) {
   const note = state.notes.find(n => n.id === state.activeNoteId);
-  if (!note) return;
+  if (!note || note.trashed) return;
 
   note.tags = e.target.value
     .split(',')
@@ -168,16 +188,38 @@ function renderNotes(custom = null) {
     state.showTrash ? n.trashed : !n.trashed
   );
 
-  if (state.activeFolder !== 'All' && !state.showTrash) {
+  if (!state.showTrash && state.activeFolder !== 'All') {
     notes = notes.filter(n => n.folder === state.activeFolder);
+  }
+
+  if (!notes.length) {
+    list.innerHTML = '<li style="opacity:.6">No notes</li>';
+    return;
   }
 
   notes.forEach(note => {
     const li = document.createElement('li');
-    li.textContent = note.title;
-    li.onclick = () => loadNote(note.id);
+    li.className = note.trashed ? 'trashed' : '';
+    li.innerHTML = `
+      <div>${note.title}</div>
+      ${state.showTrash ? `
+        <div style="display:flex; gap:6px">
+          <button class="btn" onclick="restoreNote(${note.id})">Restore</button>
+          <button class="btn danger" onclick="deleteForever(${note.id})">Delete</button>
+        </div>
+      ` : ''}
+    `;
+    if (!state.showTrash) li.onclick = () => loadNote(note.id);
     list.appendChild(li);
   });
+}
+
+/* ---------- UTIL ---------- */
+function clearEditor() {
+  $('noteTitle').value = '';
+  $('editor').innerHTML = '';
+  $('tagsInput').value = '';
+  $('noteMeta').textContent = '';
 }
 
 /* ---------- THEME ---------- */
